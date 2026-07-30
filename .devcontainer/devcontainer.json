@@ -1,0 +1,19 @@
+{
+  "name": "Rocket Crown",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "forwardPorts": [3001, 5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Frontend",
+      "onAutoForward": "openBrowser",
+      "visibility": "public"
+    },
+    "3001": {
+      "label": "Backend"
+    }
+  },
+  "postCreateCommand": "bash /workspaces/rocketcrown/.devcontainer/setup.sh",
+  "remoteEnv": {
+    "DATABASE_URL": "${localEnv:DATABASE_URL}"
+  }
+}
