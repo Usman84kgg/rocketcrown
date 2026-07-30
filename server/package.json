@@ -1,13 +1,11 @@
 {
   "name": "rocket-crown-server",
   "version": "1.0.0",
-  "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "seed": "tsx src/seed.ts",
-    "prisma:migrate": "npx prisma migrate dev --name"
-  },
+    "scripts": {
+  "dev": "tsx watch src/server.ts",
+  "start": "tsx src/server.ts",
+  "seed": "tsx src/seed.ts"
+}
   "dependencies": {
     "@prisma/client": "^5.20.0",
     "cors": "^2.8.5",
