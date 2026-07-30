@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: rocket-crown-backend
+    env: node
+    rootDir: server
+    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BOT_TOKEN
+        value: test_token
+      - key: CLIENT_URL
+        value: "*"
+      - key: PORT
+        value: "10000"
