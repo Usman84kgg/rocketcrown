@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  telegram_id   BigInt?   @unique
+  username      String?
+  first_name    String?
+  last_name     String?
+  avatar_url    String?
+  phone         String?
+  email         String?   @unique
+  password_hash String?
+  balance       Decimal   @default(0.00000000) @db.Decimal(20,8)
+  display_currency String  @default("TON")
+  status        String    @default("active") // active, blocked
+  registered_at DateTime  @default(now())
+  last_login    DateTime?
+
+  roles            UserRole[]
+  transactions     FinTransaction[]
+  deposit_requests  DepositRequest[]
+  withdrawal_requests WithdrawalRequest[]
+  game_rounds      GameRound[]
+  tickets          SupportTicket[]
+  messages         SupportMessage[]
+  user_bonuses     UserBonus[]
+  audit_logs       AuditLog[]
+}
+
+model UserRole {
+  id      String @id @default(uuid()) @db.Uuid
+  user_id String @db.Uuid
+  role    String // user, support, owner
+  user    User   @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id])
+}
+
+model FinTransaction {
+  id              String   @id @default(uuid()) @db.Uuid
+  user_id         String   @db.Uuid
+  type            String   // deposit, withdrawal, bet, win, bonus, manual_adjustment
+  amount          Decimal  @db.Decimal(20,8)
+  currency        String
+  balance_before  Decimal? @db.Decimal(20,8)
+  balance_after   Decimal? @db.Decimal(20,8)
+  reference_type  String?  // deposit_request, withdrawal_request, game_round
+  reference_id    String?  @db.Uuid
+  description     String?
+  created_at      DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+}
+
+model DepositRequest {
+  id              String    @id @default(uuid()) @db.Uuid
+  user_id         String    @db.Uuid
+  currency        String
+  network         String
+  wallet_address  String
+  amount          Decimal?  @db.Decimal(20,8)
+  status          String    @default("created") // created, pending, confirmed, rejected
+  admin_id        String?   @db.Uuid
+  admin_note      String?
+  created_at      DateTime  @default(now())
+  confirmed_at    DateTime?
+
+  user  User @relation(fields: [user_id], references: [id])
+  admin User? @relation(fields: [admin_id], references: [id])
+}
+
+model WithdrawalRequest {
+  id              String    @id @default(uuid()) @db.Uuid
+  user_id         String    @db.Uuid
+  currency        String
+  network         String
+  wallet_address  String
+  amount          Decimal   @db.Decimal(20,8)
+  fee             Decimal   @default(0) @db.Decimal(20,8)
+  status          String    @default("pending") // pending, processing, completed, rejected
+  admin_id        String?   @db.Uuid
+  admin_note      String?
+  created_at      DateTime  @default(now())
+  completed_at    DateTime?
+
+  user  User @relation(fields: [user_id], references: [id])
+  admin User? @relation(fields: [admin_id], references: [id])
+}
+
+model CryptoCurrency {
+  id              String  @id @default(uuid()) @db.Uuid
+  code            String  @unique
+  name            String?
+  network         String
+  address         String
+  qr_code         String?
+  min_deposit     Decimal @default(0.1) @db.Decimal(20,8)
+  min_withdrawal  Decimal @default(0.2) @db.Decimal(20,8)
+  deposit_enabled Boolean @default(true)
+  bonus_percent   Decimal @default(0) @db.Decimal(5,2)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model Bonus {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  type        String   // deposit_percent, free_spins, cashback, welcome
+  amount      Decimal? @db.Decimal(20,8)
+  percent     Decimal? @db.Decimal(5,2)
+  conditions  Json?
+  is_active   Boolean  @default(true)
+  starts_at   DateTime?
+  ends_at     DateTime?
+  created_at  DateTime @default(now())
+
+  user_bonuses UserBonus[]
+}
+
+model UserBonus {
+  id        String   @id @default(uuid()) @db.Uuid
+  user_id   String   @db.Uuid
+  bonus_id  String   @db.Uuid
+  status    String   @default("active") // active, used, expired
+  activated_at DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id])
+  bonus Bonus @relation(fields: [bonus_id], references: [id])
+}
+
+model PromoBanner {
+  id          String   @id @default(uuid()) @db.Uuid
+  image_url   String
+  title       String?
+  description String?
+  link_type   String   @default("internal") // internal, external
+  link_url    String?
+  is_active   Boolean  @default(true)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model Game {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String   @unique
+  category    String?  // slots, crash, live, mini, new, popular
+  description String?
+  image_url   String?
+  is_active   Boolean  @default(true)
+  min_bet     Decimal  @default(0.1) @db.Decimal(20,8)
+  max_bet     Decimal  @default(1000) @db.Decimal(20,8)
+  config      Json?
+  created_at  DateTime @default(now())
+
+  rounds GameRound[]
+}
+
+model GameRound {
+  id           String   @id @default(uuid()) @db.Uuid
+  game_id      String   @db.Uuid
+  user_id      String   @db.Uuid
+  bet_amount   Decimal  @db.Decimal(20,8)
+  multiplier   Decimal? @db.Decimal(10,4)
+  win_amount   Decimal? @db.Decimal(20,8)
+  result_data  Json?
+  status       String   @default("pending") // pending, running, completed
+  started_at   DateTime @default(now())
+  completed_at DateTime?
+
+  game Game @relation(fields: [game_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
+}
+
+model SupportTicket {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  subject    String?
+  status     String   @default("open") // open, in_progress, closed
+  created_at DateTime @default(now())
+
+  user     User               @relation(fields: [user_id], references: [id])
+  messages SupportMessage[]
+}
+
+model SupportMessage {
+  id          String   @id @default(uuid()) @db.Uuid
+  ticket_id   String   @db.Uuid
+  sender_id   String?  @db.Uuid
+  sender_type String   @default("user") // user, admin, system
+  message     String
+  created_at  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticket_id], references: [id])
+  sender User?         @relation(fields: [sender_id], references: [id])
+}
+
+model ActivityFeed {
+  id                 String   @id @default(uuid()) @db.Uuid
+  user_id            String?  @db.Uuid
+  username_display   String
+  game_name          String
+  win_amount         Decimal  @db.Decimal(20,8)
+  currency           String
+  created_at         DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  admin_id    String   @db.Uuid
+  action      String
+  entity_type String?
+  entity_id   String?  @db.Uuid
+  details     Json?
+  created_at  DateTime @default(now())
+
+  admin User @relation(fields: [admin_id], references: [id])
+}
