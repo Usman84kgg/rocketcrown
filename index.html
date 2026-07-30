@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Rocket Crown Casino</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0118;
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow-x: hidden;
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 70px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: rgba(0,0,0,0.7);
+      border-bottom: 1px solid rgba(168,85,247,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 4px; font-weight: 800; letter-spacing: 1px; }
+    .logo .rocket { color: #ff2a75; } .logo .crown { color: #a855f7; }
+    .balance-btn {
+      background: rgba(30,10,30,0.8);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .deposit-btn {
+      background: linear-gradient(135deg, #ff2a75, #a855f7);
+      border: none;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid #ff2a75;
+      background: #1a0a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+    .banner {
+      width: 100%; height: 160px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #1a0a2e, #2d0055);
+      display: flex; align-items: flex-end; padding: 16px;
+      margin-bottom: 16px;
+      position: relative; overflow: hidden;
+    }
+    .banner::before {
+      content: ''; position: absolute; top: -20px; right: -20px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(255,42,117,0.3), transparent 70%);
+      border-radius: 50%;
+    }
+    .banner h2 { font-size: 22px; z-index: 1; }
+    .banner .sub { color: #ccc; font-size: 13px; z-index: 1; }
+    .quick-cards { display: flex; gap: 10px; margin-bottom: 20px; }
+    .quick-card {
+      flex: 1; background: rgba(26,10,46,0.8);
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 16px; padding: 10px; text-align: center;
+      font-size: 11px; display: flex; flex-direction: column; align-items: center;
+      gap: 4px;
+    }
+    .quick-card .icon { font-size: 24px; }
+    .section-title { font-size: 17px; font-weight: bold; margin-bottom: 12px; }
+    .games-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+    .game-card {
+      min-width: 120px; background: rgba(26,10,46,0.8);
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(168,85,247,0.2);
+    }
+    .game-card img {
+      width: 100%; height: 80px; object-fit: cover;
+      background: linear-gradient(135deg, #2d0055, #4a0080);
+    }
+    .game-card .name { padding: 8px; font-size: 13px; font-weight: 600; }
+    .game-card .min { padding: 0 8px 8px; font-size: 10px; color: #aaa; }
+    .activity-feed {
+      background: rgba(13,1,24,0.7);
+      border: 1px solid rgba(168,85,247,0.15);
+      border-radius: 16px; padding: 14px; margin-top: 20px;
+    }
+    .activity-feed h3 { font-size: 14px; margin-bottom: 10px; }
+    .activity-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+    .activity-item .user { color: #a0a0a0; } .activity-item .win { color: #4ade80; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: rgba(0,0,0,0.9);
+      border-top: 1px solid rgba(168,85,247,0.2);
+      display: flex; justify-content: space-around; padding: 8px 0;
+      z-index: 100;
+    }
+    .bottom-nav button {
+      background: none; border: none; color: #888; font-size: 11px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      cursor: pointer;
+    }
+    .bottom-nav button.active { color: #ff2a75; }
+    .bottom-nav button .icon { font-size: 20px; }
+    .menu-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px; background: rgba(26,10,46,0.8);
+      border-radius: 16px; margin-bottom: 8px;
+      border: 1px solid rgba(168,85,247,0.15);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; margin-bottom: 4px; color: #aaa; }
+    .form-group input {
+      width: 100%; padding: 12px; background: #1a0a2e;
+      border: 1px solid rgba(168,85,247,0.3); border-radius: 12px;
+      color: white; font-size: 15px; outline: none;
+    }
+    .btn-primary {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #ff2a75, #a855f7);
+      border: none; border-radius: 14px; color: white; font-weight: bold;
+      font-size: 16px; cursor: pointer;
+    }
+    .qr-placeholder {
+      width: 160px; height: 160px; background: white; margin: 20px auto;
+      border-radius: 12px; border: 3px solid rgba(255,42,117,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <span class="rocket">ROCKET</span><span class="crown">CROWN</span>
+    </div>
+    <div class="balance-btn">28,450.50 TON</div>
+    <div class="actions">
+      <button class="deposit-btn" onclick="showPage('cashier')">Пополнить</button>
+      <div class="avatar" onclick="showPage('profile')">👤</div>
+    </div>
+  </header>
+
+  <!-- Pages -->
+  <div id="home" class="page active">
+    <div class="banner">
+      <div>
+        <h2>+100% К ПЕРВОМУ ДЕПОЗИТУ</h2>
+        <div class="sub">ПОЛУЧИТЬ БОНУС</div>
+      </div>
+    </div>
+    <div class="quick-cards">
+      <div class="quick-card"><span class="icon">🎰</span>Daily Spin</div>
+      <div class="quick-card"><span class="icon">💸</span>Кэшбэк</div>
+      <div class="quick-card"><span class="icon">👑</span>VIP Club</div>
+      <div class="quick-card"><span class="icon">🏆</span>Турниры</div>
+    </div>
+    <div class="section-title">ТОП ИГРЫ</div>
+    <div class="games-scroll">
+      <div class="game-card"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><rect fill='%234a0080' width='100' height='60'/><text x='50' y='35' text-anchor='middle' fill='white' font-size='16'>MINES</text></svg>"><div class="name">MINES</div><div class="min">Min 0.1</div></div>
+      <div class="game-card"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><rect fill='%23ff2a75' width='100' height='60'/><text x='50' y='35' text-anchor='middle' fill='white' font-size='16'>CRASH</text></svg>"><div class="name">CRASH</div><div class="min">Min 0.1</div></div>
+      <div class="game-card"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><rect fill='%23a855f7' width='100' height='60'/><text x='50' y='35' text-anchor='middle' fill='white' font-size='16'>PLINKO</text></svg>"><div class="name">PLINKO</div><div class="min">Min 0.1</div></div>
+    </div>
+    <div class="activity-feed">
+      <h3>Последние выигрыши</h3>
+      <div class="activity-item"><span class="user">R***r — CRASH</span><span class="win">+12.50 TON</span></div>
+      <div class="activity-item"><span class="user">P***x — MINES</span><span class="win">+5.20 TON</span></div>
+      <div class="activity-item"><span class="user">A***a — PLINKO</span><span class="win">+3.10 TON</span></div>
+    </div>
+  </div>
+
+  <div id="games" class="page">
+    <div class="section-title">ВСЕ ИГРЫ</div>
+    <div class="games-scroll" style="flex-wrap: wrap; gap: 12px; justify-content: center;">
+      <div class="game-card"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><rect fill='%234a0080' width='100' height='60'/><text x='50' y='35' text-anchor='middle' fill='white' font-size='16'>MINES</text></svg>"><div class="name">MINES</div><div class="min">Min 0.1</div></div>
+      <div class="game-card"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><rect fill='%23ff2a75' width='100' height='60'/><text x='50' y='35' text-anchor='middle' fill='white' font-size='16'>CRASH</text></svg>"><div class="name">CRASH</div><div class="min">Min 0.1</div></div>
+      <div class="game-card"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><rect fill='%23a855f7' width='100' height='60'/><text x='50' y='35' text-anchor='middle' fill='white' font-size='16'>PLINKO</text></svg>"><div class="name">PLINKO</div><div class="min">Min 0.1</div></div>
+    </div>
+  </div>
+
+  <div id="cashier" class="page">
+    <h2 style="text-align:center; margin-bottom:20px;">ДЕПОЗИТ</h2>
+    <div style="background:#1a0a2e; border-radius:16px; padding:14px; margin-bottom:12px; border:1px solid rgba(168,85,247,0.3);">
+      <span style="color:#aaa;">Выбрано:</span> 💎 TON (Toncoin)
+    </div>
+    <div style="background:#1a0a2e; border-radius:16px; padding:14px; margin-bottom:12px; border:1px solid rgba(168,85,247,0.3);">
+      <span style="color:#aaa;">Сеть:</span> TON Network
+    </div>
+    <div style="background:#1a0a2e; border-radius:16px; padding:14px; margin-bottom:12px; border:1px solid rgba(168,85,247,0.3); display:flex; justify-content:space-between;">
+      <span class="truncate" style="font-size:13px;">EQC123...abcd456efg</span><span style="color:#ff2a75;">📋</span>
+    </div>
+    <div class="qr-placeholder"></div>
+    <p style="text-align:center; font-size:13px;">Отправьте только TON на этот адрес<br><span style="color:#ef4444;">Минимум: 0.2 TON</span></p>
+    <button class="btn-primary" style="margin-top:16px;">Я оплатил</button>
+  </div>
+
+  <div id="profile" class="page">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#1a0a2e;border:2px solid #a855f7;display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>
+      <div>
+        <div style="font-weight:bold;font-size:18px;">RocketPlayer</div>
+        <div style="color:#aaa;font-size:12px;">ID: 54879621</div>
+        <div style="color:#f97316;font-size:12px;">Верификация: не пройдена</div>
+      </div>
+    </div>
+    <div class="menu-item" onclick="showPage('profile')">👤 Мой профиль <span>›</span></div>
+    <div class="menu-item" onclick="showPage('settings')">⚙️ Настройки <span>›</span></div>
+    <div class="menu-item">🔒 Безопасность <span>›</span></div>
+    <div class="menu-item">📋 История ставок <span>›</span></div>
+    <div class="menu-item" onclick="showPage('bonuses')">🎁 Мои бонусы <span>›</span></div>
+    <div class="menu-item" style="color:#f87171;">🚪 Выход <span>›</span></div>
+  </div>
+
+  <div id="bonuses" class="page">
+    <h2 style="text-align:center; margin-bottom:20px;">МОИ БОНУСЫ</h2>
+    <div style="background:#1a0a2e; border-radius:16px; padding:16px; margin-bottom:12px; border:1px solid rgba(168,85,247,0.2);">
+      <div style="font-weight:bold;">Welcome Bonus</div>
+      <div style="font-size:24px; font-weight:bold; margin:4px 0;">+250 FS</div>
+      <div style="color:#aaa; font-size:12px;">за регистрацию</div>
+      <button style="background:#22c55e;color:white;border:none;padding:8px 20px;border-radius:20px;margin-top:8px;">Получен</button>
+    </div>
+    <div style="background:#1a0a2e; border-radius:16px; padding:16px; margin-bottom:12px; border:1px solid rgba(168,85,247,0.2);">
+      <div style="font-weight:bold;">Бонус к депозиту</div>
+      <div style="font-size:24px; font-weight:bold; margin:4px 0;">+100%</div>
+      <div style="color:#aaa; font-size:12px;">на первый депозит</div>
+      <button style="background:linear-gradient(135deg,#ff2a75,#a855f7);color:white;border:none;padding:8px 20px;border-radius:20px;margin-top:8px;">Активировать</button>
+    </div>
+  </div>
+
+  <div id="support" class="page">
+    <h2 style="text-align:center;">ПОДДЕРЖКА 24/7</h2>
+    <p style="text-align:center; color:#aaa; margin-bottom:20px;">Мы всегда готовы помочь!</p>
+    <div class="menu-item">💬 Чат с поддержкой <span style="color:#4ade80;">Онлайн</span></div>
+    <div class="menu-item">❓ FAQ <span>›</span></div>
+    <div class="menu-item">📧 info@rocketcrown.com <span>›</span></div>
+  </div>
+
+  <div id="settings" class="page">
+    <h2 style="margin-bottom:16px;">Настройки</h2>
+    <div style="color:#aaa; font-size:13px; margin-bottom:6px;">АККАУНТ</div>
+    <div class="menu-item">📱 Привязать телефон <span>›</span></div>
+    <div class="menu-item">🔑 Изменить пароль <span>›</span></div>
+    <div class="menu-item">🌐 Язык <span style="color:#aaa;">Русский ›</span></div>
+    <div style="color:#aaa; font-size:13px; margin:16px 0 6px;">УВЕДОМЛЕНИЯ</div>
+    <div class="menu-item">🎁 Бонусы и акции <span>✅</span></div>
+    <div class="menu-item">🏆 Турниры <span>✅</span></div>
+    <div class="menu-item">🔔 Системные <span>❌</span></div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button onclick="showPage('cashier')"><span class="icon">💳</span>Касса</button>
+    <button onclick="showPage('games')"><span class="icon">🎮</span>Игры</button>
+    <button onclick="showPage('home')" class="active"><span class="icon">👑</span>Казино</button>
+    <button onclick="showPage('support')"><span class="icon">≡</span>Меню</button>
+  </nav>
+
+  <script>
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(name).classList.add('active');
+      document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+      const labels = { home: 'Казино', games: 'Игры', cashier: 'Касса', support: 'Меню' };
+      document.querySelectorAll('.bottom-nav button').forEach(b => {
+        if(b.innerText.includes(labels[name])) b.classList.add('active');
+      });
+    }
+  </script>
+</body>
+</html>
