@@ -1,3 +1,17 @@
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        ready: () => void;
+        expand: () => void;
+        setHeaderColor: (color: string) => void;
+        setBackgroundColor: (color: string) => void;
+        initData: string;
+      };
+    };
+  }
+}
+
 export function initTelegram() {
   if (window.Telegram?.WebApp) {
     const tg = window.Telegram.WebApp;
@@ -9,8 +23,5 @@ export function initTelegram() {
 }
 
 export function getInitData(): string {
-  if (window.Telegram?.WebApp) {
-    return window.Telegram.WebApp.initData;
-  }
-  return '';
+  return window.Telegram?.WebApp?.initData || '';
 }
