@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import Games from './pages/Games';
 import Cashier from './pages/Cashier';
