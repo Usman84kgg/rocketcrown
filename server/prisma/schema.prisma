@@ -19,17 +19,19 @@ model User {
   password_hash String?
   balance       Decimal   @default(0.00000000) @db.Decimal(20,8)
   display_currency String  @default("TON")
-  status        String    @default("active") // active, blocked
+  status        String    @default("active")
   registered_at DateTime  @default(now())
   last_login    DateTime?
 
   roles            UserRole[]
   transactions     FinTransaction[]
-  deposit_requests  DepositRequest[]
-  withdrawal_requests WithdrawalRequest[]
+  deposit_requests  DepositRequest[]   @relation("DepositUser")
+  deposit_approvals DepositRequest[]   @relation("DepositAdmin")
+  withdrawal_requests WithdrawalRequest[] @relation("WithdrawalUser")
+  withdrawal_approvals WithdrawalRequest[] @relation("WithdrawalAdmin")
   game_rounds      GameRound[]
   tickets          SupportTicket[]
-  messages         SupportMessage[]
+  messages         SupportMessage[]    @relation("SupportSender")
   user_bonuses     UserBonus[]
   audit_logs       AuditLog[]
 }
@@ -37,7 +39,7 @@ model User {
 model UserRole {
   id      String @id @default(uuid()) @db.Uuid
   user_id String @db.Uuid
-  role    String // user, support, owner
+  role    String
   user    User   @relation(fields: [user_id], references: [id])
 
   @@unique([user_id])
@@ -46,12 +48,12 @@ model UserRole {
 model FinTransaction {
   id              String   @id @default(uuid()) @db.Uuid
   user_id         String   @db.Uuid
-  type            String   // deposit, withdrawal, bet, win, bonus, manual_adjustment
+  type            String
   amount          Decimal  @db.Decimal(20,8)
   currency        String
   balance_before  Decimal? @db.Decimal(20,8)
   balance_after   Decimal? @db.Decimal(20,8)
-  reference_type  String?  // deposit_request, withdrawal_request, game_round
+  reference_type  String?
   reference_id    String?  @db.Uuid
   description     String?
   created_at      DateTime @default(now())
@@ -66,14 +68,14 @@ model DepositRequest {
   network         String
   wallet_address  String
   amount          Decimal?  @db.Decimal(20,8)
-  status          String    @default("created") // created, pending, confirmed, rejected
+  status          String    @default("created")
   admin_id        String?   @db.Uuid
   admin_note      String?
   created_at      DateTime  @default(now())
   confirmed_at    DateTime?
 
-  user  User @relation(fields: [user_id], references: [id])
-  admin User? @relation(fields: [admin_id], references: [id])
+  user  User  @relation("DepositUser", fields: [user_id], references: [id])
+  admin User? @relation("DepositAdmin", fields: [admin_id], references: [id])
 }
 
 model WithdrawalRequest {
@@ -84,14 +86,14 @@ model WithdrawalRequest {
   wallet_address  String
   amount          Decimal   @db.Decimal(20,8)
   fee             Decimal   @default(0) @db.Decimal(20,8)
-  status          String    @default("pending") // pending, processing, completed, rejected
+  status          String    @default("pending")
   admin_id        String?   @db.Uuid
   admin_note      String?
   created_at      DateTime  @default(now())
   completed_at    DateTime?
 
-  user  User @relation(fields: [user_id], references: [id])
-  admin User? @relation(fields: [admin_id], references: [id])
+  user  User  @relation("WithdrawalUser", fields: [user_id], references: [id])
+  admin User? @relation("WithdrawalAdmin", fields: [admin_id], references: [id])
 }
 
 model CryptoCurrency {
@@ -113,7 +115,7 @@ model Bonus {
   id          String   @id @default(uuid()) @db.Uuid
   title       String
   description String?
-  type        String   // deposit_percent, free_spins, cashback, welcome
+  type        String
   amount      Decimal? @db.Decimal(20,8)
   percent     Decimal? @db.Decimal(5,2)
   conditions  Json?
@@ -129,7 +131,7 @@ model UserBonus {
   id        String   @id @default(uuid()) @db.Uuid
   user_id   String   @db.Uuid
   bonus_id  String   @db.Uuid
-  status    String   @default("active") // active, used, expired
+  status    String   @default("active")
   activated_at DateTime @default(now())
 
   user  User  @relation(fields: [user_id], references: [id])
@@ -141,7 +143,7 @@ model PromoBanner {
   image_url   String
   title       String?
   description String?
-  link_type   String   @default("internal") // internal, external
+  link_type   String   @default("internal")
   link_url    String?
   is_active   Boolean  @default(true)
   sort_order  Int      @default(0)
@@ -153,7 +155,7 @@ model Game {
   id          String   @id @default(uuid()) @db.Uuid
   name        String
   slug        String   @unique
-  category    String?  // slots, crash, live, mini, new, popular
+  category    String?
   description String?
   image_url   String?
   is_active   Boolean  @default(true)
@@ -173,7 +175,7 @@ model GameRound {
   multiplier   Decimal? @db.Decimal(10,4)
   win_amount   Decimal? @db.Decimal(20,8)
   result_data  Json?
-  status       String   @default("pending") // pending, running, completed
+  status       String   @default("pending")
   started_at   DateTime @default(now())
   completed_at DateTime?
 
@@ -185,7 +187,7 @@ model SupportTicket {
   id         String   @id @default(uuid()) @db.Uuid
   user_id    String   @db.Uuid
   subject    String?
-  status     String   @default("open") // open, in_progress, closed
+  status     String   @default("open")
   created_at DateTime @default(now())
 
   user     User               @relation(fields: [user_id], references: [id])
@@ -196,12 +198,12 @@ model SupportMessage {
   id          String   @id @default(uuid()) @db.Uuid
   ticket_id   String   @db.Uuid
   sender_id   String?  @db.Uuid
-  sender_type String   @default("user") // user, admin, system
+  sender_type String   @default("user")
   message     String
   created_at  DateTime @default(now())
 
   ticket SupportTicket @relation(fields: [ticket_id], references: [id])
-  sender User?         @relation(fields: [sender_id], references: [id])
+  sender User?         @relation("SupportSender", fields: [sender_id], references: [id])
 }
 
 model ActivityFeed {
