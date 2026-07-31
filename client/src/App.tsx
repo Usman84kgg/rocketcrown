@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import Games from './pages/Games';
 import Cashier from './pages/Cashier';
@@ -15,8 +13,7 @@ import Admin from './pages/Admin';
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-[#0d0118] text-white pb-16">
-        <Header />
+      <div className="min-h-screen bg-[#0d0118] text-white">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/games" element={<Games />} />
@@ -29,7 +26,6 @@ export default function App() {
           <Route path="/support" element={<Support />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
-        <BottomNav />
       </div>
     </BrowserRouter>
   );
